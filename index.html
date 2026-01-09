@@ -26,10 +26,19 @@
   <main class="container mx-auto p-6">
     <h2 class="text-3xl font-bold mb-6">Featured Games</h2>
 
+    <!-- Search Input -->
+    <div class="mb-6">
+      <input id="searchInput" type="text" placeholder="Search games..." 
+             class="w-full p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+    </div>
+
     <!-- Game Grid -->
     <div id="gamesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
       <!-- Games will be inserted here dynamically -->
     </div>
+
+    <!-- Pagination -->
+    <div id="pagination" class="flex justify-center mt-6 space-x-2"></div>
   </main>
 
   <!-- Footer -->
@@ -37,31 +46,119 @@
     &copy; 2026 GameHaven. All rights reserved.
   </footer>
 
-  <!-- Script to load JSON -->
+  <!-- Script to load JSON, search & paginate -->
   <script>
+    let allGames = [];
+    let filteredGames = [];
+    let currentPage = 1;
+    const rowsPerPage = 4;
+    const colsPerRow = 6;
+    const gamesPerPage = rowsPerPage * colsPerRow; // 24 games per page
+
     // Fetch games from JSON file
     fetch('games.json')
       .then(response => response.json())
       .then(games => {
-        const grid = document.getElementById('gamesGrid');
-
-        games.forEach(game => {
-          const card = document.createElement('div');
-          card.className = 'game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer';
-
-          card.innerHTML = `
-            <a href="${game.link}" target="_blank">
-              <img src="${game.image}" alt="${game.name}" class="w-full h-48 object-cover">
-              <div class="p-2 text-center">
-                <h3 class="text-sm font-semibold">${game.name}</h3>
-              </div>
-            </a>
-          `;
-
-          grid.appendChild(card);
-        });
+        allGames = games;
+        filteredGames = allGames;
+        displayGames();
+        setupPagination();
       })
       .catch(err => console.error('Failed to load games.json', err));
+
+    function displayGames() {
+      const grid = document.getElementById('gamesGrid');
+      grid.innerHTML = '';
+
+      const start = (currentPage - 1) * gamesPerPage;
+      const end = start + gamesPerPage;
+      const gamesToShow = filteredGames.slice(start, end);
+
+      if (gamesToShow.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No games found.</p>`;
+        return;
+      }
+
+      gamesToShow.forEach(game => {
+        const card = document.createElement('div');
+        card.className = 'game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer';
+        card.innerHTML = `
+          <a href="${game.link}" target="_blank">
+            <img src="${game.image}" alt="${game.name}" class="w-full h-48 object-cover">
+            <div class="p-2 text-center">
+              <h3 class="text-sm font-semibold">${game.name}</h3>
+            </div>
+          </a>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function setupPagination() {
+  const pagination = document.getElementById('pagination');
+  pagination.innerHTML = '';
+
+  const pageCount = Math.ceil(filteredGames.length / gamesPerPage);
+  if (pageCount <= 1) return;
+
+  // Previous arrow
+  const prevBtn = document.createElement('button');
+  prevBtn.textContent = '←';
+  prevBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
+  prevBtn.disabled = currentPage === 1;
+  prevBtn.onclick = () => { 
+    currentPage--; 
+    displayGames(); 
+    setupPagination(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  pagination.appendChild(prevBtn);
+
+  // Page buttons (show max 5 pages)
+  const maxPagesToShow = 5;
+  let startPage = Math.max(1, currentPage - 2);
+  let endPage = Math.min(pageCount, startPage + maxPagesToShow - 1);
+  if (endPage - startPage < maxPagesToShow - 1) {
+    startPage = Math.max(1, endPage - maxPagesToShow + 1);
+  }
+
+  for (let i = startPage; i <= endPage; i++) {
+    const btn = document.createElement('button');
+    btn.textContent = i;
+    btn.className = `px-3 py-1 rounded ${i === currentPage ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`;
+    btn.onclick = () => { 
+      currentPage = i; 
+      displayGames(); 
+      setupPagination(); 
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    pagination.appendChild(btn);
+  }
+
+  // Next arrow
+  const nextBtn = document.createElement('button');
+  nextBtn.textContent = '→';
+  nextBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
+  nextBtn.disabled = currentPage === pageCount;
+ nextBtn.onclick = () => { 
+    currentPage++; 
+    displayGames(); 
+    setupPagination(); 
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+  pagination.appendChild(nextBtn);
+}
+
+
+    // Search
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      filteredGames = allGames.filter(game => game.name.toLowerCase().includes(query));
+      currentPage = 1;
+      displayGames();
+      setupPagination();
+    });
   </script>
 
 </body>
