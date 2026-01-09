@@ -7,6 +7,8 @@
 
   <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lottie Player CDN -->
+  <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 
   <style>
     /* Hide scrollbar */
@@ -31,11 +33,37 @@
 
 <body class="bg-gray-900 text-white">
 
-<!-- HEADER -->
+<!-- LOADING OVERLAY -->
+<div id="loadingOverlay" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+  <lottie-player
+      src="Pokeball loading.json"
+      background="transparent"
+      speed="1"
+      style="width: 120px; height: 120px;"
+      loop
+      autoplay>
+  </lottie-player>
+</div>
+
 <header class="bg-gray-800 sticky top-0 z-50 shadow-md">
   <div class="container mx-auto px-6 py-4 flex justify-between items-center">
     <h1 class="text-2xl font-bold tracking-wide">🎮 GameHaven</h1>
-    <span class="text-gray-400 text-sm">by Melvin</span>
+
+    <!-- HEADER NAVIGATION -->
+    <nav>
+      <ul class="flex space-x-6 text-sm font-semibold">
+        <li>
+          <a href="index.html" class="text-blue-400 border-b-2 border-blue-500 pb-1">
+            Games
+          </a>
+        </li>
+        <li>
+          <a href="software.html" class="text-gray-400 hover:text-white hover:border-gray-500 border-b-2 border-transparent pb-1">
+            Softwares
+          </a>
+        </li>
+      </ul>
+    </nav>
   </div>
 </header>
 
@@ -45,7 +73,7 @@
 <input id="searchInput"
   type="text"
   placeholder="Search games..."
-  class="w-full mb-6 p-3 rounded-lg bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none">
+  class="w-full mb-6 p-3 rounded-lg bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none transition duration-300 ease-in-out">
 
 <!-- 🔥 HOT GAMES -->
 <section class="relative">
@@ -62,7 +90,7 @@
            text-3xl hidden md:flex items-center justify-center">›</button>
 
   <div id="hotGamesRow"
-    class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide">
+    class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide transition-opacity duration-500 ease-in-out opacity-0">
   </div>
 </section>
 
@@ -71,7 +99,7 @@
   <h2 class="text-3xl font-bold mb-6">⭐ All Games</h2>
 
   <div id="gamesGrid"
-    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 transition-opacity duration-500 ease-in-out opacity-0">
   </div>
 
   <div id="pagination" class="flex justify-center mt-8 space-x-2"></div>
@@ -84,148 +112,140 @@
 </footer>
 
 <script>
-/* 🔀 SHUFFLE */
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
+/* LOADING OVERLAY */
+const loading = document.getElementById('loadingOverlay');
+function showLoading(){ loading.classList.remove('hidden'); }
+function hideLoading(){ loading.classList.add('hidden'); }
+
+/* SHUFFLE ARRAY */
+function shuffleArray(array){
+  for(let i=array.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [array[i],array[j]]=[array[j],array[i]];
   }
 }
 
-/* 🔥 HOT GAMES */
+/* HOT GAMES */
 fetch('hot.json')
-  .then(res => res.json())
-  .then(data => {
+  .then(res=>res.json())
+  .then(data=>{
     shuffleArray(data);
-    const row = document.getElementById('hotGamesRow');
+    const row=document.getElementById('hotGamesRow');
+    row.classList.add('opacity-0');
+    setTimeout(()=>row.classList.remove('opacity-0'),50);
 
-    data.forEach((game, index) => {
-      const isHero = index === 0;
-      const card = document.createElement('div');
-
-      card.className = `
+    data.forEach((game,index)=>{
+      const isHero=index===0;
+      const card=document.createElement('div');
+      card.className=`
         netflix-card snap-start relative rounded-xl overflow-hidden cursor-pointer
-        ${isHero ? 'min-w-[420px]' : 'min-w-[200px]'} h-[260px]
-      `;
-
-      card.innerHTML = `
+        ${isHero?'min-w-[420px]':'min-w-[200px]'} h-[260px]`;
+      card.innerHTML=`
         <a href="${game.link}" target="_blank">
           <img src="${game.image}" class="w-full h-full object-cover"/>
           <div class="absolute inset-0 card-overlay p-4 flex flex-col justify-end">
-            <h3 class="${isHero ? 'text-2xl' : 'text-sm'} font-bold">${game.name}</h3>
-            ${isHero ? `<p class="text-xs text-gray-300 mt-1">Pick Now</p>` : ''}
+            <h3 class="${isHero?'text-2xl':'text-sm'} font-bold">${game.name}</h3>
+            ${isHero?'<p class="text-xs text-gray-300 mt-1">Pick Now</p>':''}
           </div>
-        </a>
-      `;
-
+        </a>`;
       row.appendChild(card);
     });
 
-    hotLeft.onclick = () => row.scrollBy({ left: -500, behavior: 'smooth' });
-    hotRight.onclick = () => row.scrollBy({ left: 500, behavior: 'smooth' });
+    document.getElementById('hotLeft').onclick=()=>row.scrollBy({left:-500,behavior:'smooth'});
+    document.getElementById('hotRight').onclick=()=>row.scrollBy({left:500,behavior:'smooth'});
   });
 
-/* ⭐ ALL GAMES + PAGINATION */
-let allGames = [];
-let filteredGames = [];
-let currentPage = 1;
-const rowsPerPage = 4;
-const colsPerRow = 6;
-const gamesPerPage = rowsPerPage * colsPerRow;
+/* ALL GAMES + PAGINATION */
+let allGames=[],filteredGames=[],currentPage=1;
+const rowsPerPage=4,colsPerRow=6,gamesPerPage=rowsPerPage*colsPerRow;
 
 fetch('games.json')
-  .then(res => res.json())
-  .then(data => {
-    allGames = data;
-    filteredGames = data;
+  .then(res=>res.json())
+  .then(data=>{
+    allGames=data;
+    filteredGames=data;
     displayGames();
     setupPagination();
   });
 
-function displayGames() {
-  const grid = document.getElementById('gamesGrid');
-  grid.innerHTML = '';
+function displayGames(){
+  const grid=document.getElementById('gamesGrid');
+  showLoading();
+  grid.classList.add('opacity-0');
 
-  const start = (currentPage - 1) * gamesPerPage;
-  const end = start + gamesPerPage;
-  const gamesToShow = filteredGames.slice(start, end);
+  setTimeout(()=>{
+    grid.innerHTML='';
+    const start=(currentPage-1)*gamesPerPage;
+    const end=start+gamesPerPage;
+    const gamesToShow=filteredGames.slice(start,end);
 
-  if (!gamesToShow.length) {
-    grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No games found.</p>`;
-    return;
-  }
-
-  gamesToShow.forEach(game => {
-    const card = document.createElement('div');
-    card.className = `netflix-card relative rounded-xl overflow-hidden cursor-pointer h-[260px]`;
-
-    card.innerHTML = `
-      <a href="${game.link}" target="_blank">
-        <img src="${game.image}" class="w-full h-full object-cover"/>
-        <div class="absolute inset-0 card-overlay p-3 flex flex-col justify-end">
-          <h3 class="text-sm font-semibold">${game.name}</h3>
-        </div>
-      </a>
-    `;
-
-    grid.appendChild(card);
-  });
+    if(!gamesToShow.length){
+      grid.innerHTML='<p class="col-span-full text-center text-gray-400">No games found.</p>';
+    } else {
+      gamesToShow.forEach(game=>{
+        const card=document.createElement('div');
+        card.className='netflix-card relative rounded-xl overflow-hidden cursor-pointer h-[260px]';
+        card.innerHTML=`
+          <a href="${game.link}" target="_blank">
+            <img src="${game.image}" class="w-full h-full object-cover"/>
+            <div class="absolute inset-0 card-overlay p-3 flex flex-col justify-end">
+              <h3 class="text-sm font-semibold">${game.name}</h3>
+            </div>
+          </a>`;
+        grid.appendChild(card);
+      });
+    }
+    grid.classList.remove('opacity-0');
+    hideLoading();
+  }, 300);
 }
 
-function setupPagination() {
-  const pagination = document.getElementById('pagination');
-  pagination.innerHTML = '';
-  const pageCount = Math.ceil(filteredGames.length / gamesPerPage);
-  if (pageCount <= 1) return;
+function setupPagination(){
+  const pagination=document.getElementById('pagination');
+  pagination.innerHTML='';
+  const pageCount=Math.ceil(filteredGames.length/gamesPerPage);
+  if(pageCount<=1) return;
 
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '←';
-  prevBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
-  prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => {
-    currentPage--;
-    displayGames();
-    setupPagination();
-  };
+  const prevBtn=document.createElement('button');
+  prevBtn.textContent='←';
+  prevBtn.className='px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
+  prevBtn.disabled=currentPage===1;
+  prevBtn.onclick=()=>{ currentPage--; displayGames(); setupPagination(); window.scrollTo({top:0,behavior:'smooth'}); };
   pagination.appendChild(prevBtn);
 
-  const maxPages = 5;
-  let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(pageCount, startPage + maxPages - 1);
-  if (endPage - startPage < maxPages - 1)
-    startPage = Math.max(1, endPage - maxPages + 1);
+  const maxPages=5;
+  let startPage=Math.max(1,currentPage-2);
+  let endPage=Math.min(pageCount,startPage+maxPages-1);
+  if(endPage-startPage<maxPages-1) startPage=Math.max(1,endPage-maxPages+1);
 
-  for (let i = startPage; i <= endPage; i++) {
-    const btn = document.createElement('button');
-    btn.textContent = i;
-    btn.className = `px-3 py-1 rounded ${i === currentPage ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`;
-    btn.onclick = () => {
-      currentPage = i;
-      displayGames();
-      setupPagination();
-    };
+  for(let i=startPage;i<=endPage;i++){
+    const btn=document.createElement('button');
+    btn.textContent=i;
+    btn.className=`px-3 py-1 rounded ${i===currentPage?'bg-blue-600':'bg-gray-700 hover:bg-gray-600'}`;
+    btn.onclick=()=>{ currentPage=i; displayGames(); setupPagination(); window.scrollTo({top:0,behavior:'smooth'}); };
     pagination.appendChild(btn);
   }
 
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '→';
-  nextBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
-  nextBtn.disabled = currentPage === pageCount;
-  nextBtn.onclick = () => {
-    currentPage++;
-    displayGames();
-    setupPagination();
-  };
+  const nextBtn=document.createElement('button');
+  nextBtn.textContent='→';
+  nextBtn.className='px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
+  nextBtn.disabled=currentPage===pageCount;
+  nextBtn.onclick=()=>{ currentPage++; displayGames(); setupPagination(); window.scrollTo({top:0,behavior:'smooth'}); };
   pagination.appendChild(nextBtn);
 }
 
-/* 🔍 SEARCH */
-searchInput.addEventListener('input', e => {
-  const q = e.target.value.toLowerCase();
-  filteredGames = allGames.filter(g => g.name.toLowerCase().includes(q));
-  currentPage = 1;
+/* SEARCH */
+document.getElementById('searchInput').addEventListener('input',e=>{
+  const q=e.target.value.toLowerCase();
+  filteredGames=allGames.filter(g=>g.name.toLowerCase().includes(q));
+  currentPage=1;
   displayGames();
   setupPagination();
+});
+
+/* NAVIGATION CLICK LOADING */
+document.querySelectorAll('nav a').forEach(link=>{
+  link.addEventListener('click',()=>{ showLoading(); });
 });
 </script>
 
