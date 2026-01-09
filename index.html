@@ -1,165 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>GameHaven</title>
+
+  <!-- Tailwind CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
-    .game-card:hover img {
-      transform: scale(1.05);
-      transition: transform 0.3s ease-in-out;
+    /* Hide scrollbar */
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* Netflix-style hover zoom */
+    .netflix-card img {
+      transition: transform 0.4s ease;
+    }
+    .netflix-card:hover img {
+      transform: scale(1.15);
+    }
+
+    /* Overlay gradient */
+    .card-overlay {
+      background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
     }
   </style>
 </head>
+
 <body class="bg-gray-900 text-white">
 
-  <!-- Header -->
-  <header class="bg-gray-800 p-4 sticky top-0 z-50 shadow-md">
-    <div class="container mx-auto flex justify-between items-center">
-      <h1 class="text-2xl font-bold">GameHaven</h1>
-      <p class="text-1xl font-light">by Melvin</p>
-    </div>
-  </header>
+<!-- HEADER -->
+<header class="bg-gray-800 sticky top-0 z-50 shadow-md">
+  <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+    <h1 class="text-2xl font-bold tracking-wide">🎮 GameHaven</h1>
+    <span class="text-gray-400 text-sm">by Melvin</span>
+  </div>
+</header>
 
-  <!-- Main Content -->
-  <main class="container mx-auto p-6">
-    <h2 class="text-3xl font-bold mb-6">Featured Games</h2>
+<!-- MAIN -->
+<main class="container mx-auto px-6 py-8 space-y-14">
 
-    <!-- Search Input -->
-    <div class="mb-6">
-      <input id="searchInput" type="text" placeholder="Search games..." 
-             class="w-full p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-    </div>
+<input id="searchInput"
+  type="text"
+  placeholder="Search games..."
+  class="w-full mb-6 p-3 rounded-lg bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none">
 
-    <!-- Game Grid -->
-    <div id="gamesGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-      <!-- Games will be inserted here dynamically -->
-    </div>
+<!-- 🔥 HOT GAMES -->
+<section class="relative">
+  <h2 class="text-3xl font-bold mb-4">🔥 Hot Games</h2>
 
-    <!-- Pagination -->
-    <div id="pagination" class="flex justify-center mt-6 space-x-2"></div>
-  </main>
+  <button id="hotLeft"
+    class="absolute left-0 top-1/2 -translate-y-1/2 z-30
+           w-14 h-24 bg-gradient-to-r from-black/80 to-transparent
+           text-3xl hidden md:flex items-center justify-center">‹</button>
 
-  <!-- Footer -->
-  <footer class="bg-gray-800 p-4 mt-12 text-center text-gray-400">
-    &copy; 2026 GameHaven. All rights reserved.
-  </footer>
+  <button id="hotRight"
+    class="absolute right-0 top-1/2 -translate-y-1/2 z-30
+           w-14 h-24 bg-gradient-to-l from-black/80 to-transparent
+           text-3xl hidden md:flex items-center justify-center">›</button>
 
-  <!-- Script to load JSON, search & paginate -->
-  <script>
-    let allGames = [];
-    let filteredGames = [];
-    let currentPage = 1;
-    const rowsPerPage = 4;
-    const colsPerRow = 6;
-    const gamesPerPage = rowsPerPage * colsPerRow; // 24 games per page
+  <div id="hotGamesRow"
+    class="flex gap-4 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide">
+  </div>
+</section>
 
-    // Fetch games from JSON file
-    fetch('games.json')
-      .then(response => response.json())
-      .then(games => {
-        allGames = games;
-        filteredGames = allGames;
-        displayGames();
-        setupPagination();
-      })
-      .catch(err => console.error('Failed to load games.json', err));
+<!-- ⭐ ALL GAMES -->
+<section>
+  <h2 class="text-3xl font-bold mb-6">⭐ All Games</h2>
 
-    function displayGames() {
-      const grid = document.getElementById('gamesGrid');
-      grid.innerHTML = '';
+  <div id="gamesGrid"
+    class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+  </div>
 
-      const start = (currentPage - 1) * gamesPerPage;
-      const end = start + gamesPerPage;
-      const gamesToShow = filteredGames.slice(start, end);
+  <div id="pagination" class="flex justify-center mt-8 space-x-2"></div>
+</section>
 
-      if (gamesToShow.length === 0) {
-        grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No games found.</p>`;
-        return;
-      }
+</main>
 
-      gamesToShow.forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card bg-gray-800 rounded-lg overflow-hidden shadow-lg cursor-pointer';
-        card.innerHTML = `
-          <a href="${game.link}" target="_blank">
-            <img src="${game.image}" alt="${game.name}" class="w-full h-48 object-cover">
-            <div class="p-2 text-center">
-              <h3 class="text-sm font-semibold">${game.name}</h3>
-            </div>
-          </a>
-        `;
-        grid.appendChild(card);
-      });
-    }
+<footer class="bg-gray-800 text-gray-400 text-center py-4 mt-12">
+  © 2026 GameHaven. All rights reserved.
+</footer>
 
-    function setupPagination() {
+<script>
+/* 🔀 SHUFFLE */
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+/* 🔥 HOT GAMES */
+fetch('hot.json')
+  .then(res => res.json())
+  .then(data => {
+    shuffleArray(data);
+    const row = document.getElementById('hotGamesRow');
+
+    data.forEach((game, index) => {
+      const isHero = index === 0;
+      const card = document.createElement('div');
+
+      card.className = `
+        netflix-card snap-start relative rounded-xl overflow-hidden cursor-pointer
+        ${isHero ? 'min-w-[420px]' : 'min-w-[200px]'} h-[260px]
+      `;
+
+      card.innerHTML = `
+        <a href="${game.link}" target="_blank">
+          <img src="${game.image}" class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 card-overlay p-4 flex flex-col justify-end">
+            <h3 class="${isHero ? 'text-2xl' : 'text-sm'} font-bold">${game.name}</h3>
+            ${isHero ? `<p class="text-xs text-gray-300 mt-1">Pick Now</p>` : ''}
+          </div>
+        </a>
+      `;
+
+      row.appendChild(card);
+    });
+
+    hotLeft.onclick = () => row.scrollBy({ left: -500, behavior: 'smooth' });
+    hotRight.onclick = () => row.scrollBy({ left: 500, behavior: 'smooth' });
+  });
+
+/* ⭐ ALL GAMES + PAGINATION */
+let allGames = [];
+let filteredGames = [];
+let currentPage = 1;
+const rowsPerPage = 4;
+const colsPerRow = 6;
+const gamesPerPage = rowsPerPage * colsPerRow;
+
+fetch('games.json')
+  .then(res => res.json())
+  .then(data => {
+    allGames = data;
+    filteredGames = data;
+    displayGames();
+    setupPagination();
+  });
+
+function displayGames() {
+  const grid = document.getElementById('gamesGrid');
+  grid.innerHTML = '';
+
+  const start = (currentPage - 1) * gamesPerPage;
+  const end = start + gamesPerPage;
+  const gamesToShow = filteredGames.slice(start, end);
+
+  if (!gamesToShow.length) {
+    grid.innerHTML = `<p class="col-span-full text-center text-gray-400">No games found.</p>`;
+    return;
+  }
+
+  gamesToShow.forEach(game => {
+    const card = document.createElement('div');
+    card.className = `netflix-card relative rounded-xl overflow-hidden cursor-pointer h-[260px]`;
+
+    card.innerHTML = `
+      <a href="${game.link}" target="_blank">
+        <img src="${game.image}" class="w-full h-full object-cover"/>
+        <div class="absolute inset-0 card-overlay p-3 flex flex-col justify-end">
+          <h3 class="text-sm font-semibold">${game.name}</h3>
+        </div>
+      </a>
+    `;
+
+    grid.appendChild(card);
+  });
+}
+
+function setupPagination() {
   const pagination = document.getElementById('pagination');
   pagination.innerHTML = '';
-
   const pageCount = Math.ceil(filteredGames.length / gamesPerPage);
   if (pageCount <= 1) return;
 
-  // Previous arrow
   const prevBtn = document.createElement('button');
   prevBtn.textContent = '←';
   prevBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
   prevBtn.disabled = currentPage === 1;
-  prevBtn.onclick = () => { 
-    currentPage--; 
-    displayGames(); 
-    setupPagination(); 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  prevBtn.onclick = () => {
+    currentPage--;
+    displayGames();
+    setupPagination();
   };
   pagination.appendChild(prevBtn);
 
-  // Page buttons (show max 5 pages)
-  const maxPagesToShow = 5;
+  const maxPages = 5;
   let startPage = Math.max(1, currentPage - 2);
-  let endPage = Math.min(pageCount, startPage + maxPagesToShow - 1);
-  if (endPage - startPage < maxPagesToShow - 1) {
-    startPage = Math.max(1, endPage - maxPagesToShow + 1);
-  }
+  let endPage = Math.min(pageCount, startPage + maxPages - 1);
+  if (endPage - startPage < maxPages - 1)
+    startPage = Math.max(1, endPage - maxPages + 1);
 
   for (let i = startPage; i <= endPage; i++) {
     const btn = document.createElement('button');
     btn.textContent = i;
     btn.className = `px-3 py-1 rounded ${i === currentPage ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`;
-    btn.onclick = () => { 
-      currentPage = i; 
-      displayGames(); 
-      setupPagination(); 
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    btn.onclick = () => {
+      currentPage = i;
+      displayGames();
+      setupPagination();
     };
     pagination.appendChild(btn);
   }
 
-  // Next arrow
   const nextBtn = document.createElement('button');
   nextBtn.textContent = '→';
   nextBtn.className = 'px-3 py-1 rounded bg-gray-700 hover:bg-gray-600';
   nextBtn.disabled = currentPage === pageCount;
- nextBtn.onclick = () => { 
-    currentPage++; 
-    displayGames(); 
-    setupPagination(); 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  nextBtn.onclick = () => {
+    currentPage++;
+    displayGames();
+    setupPagination();
   };
   pagination.appendChild(nextBtn);
 }
 
-
-    // Search
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', () => {
-      const query = searchInput.value.toLowerCase();
-      filteredGames = allGames.filter(game => game.name.toLowerCase().includes(query));
-      currentPage = 1;
-      displayGames();
-      setupPagination();
-    });
-  </script>
+/* 🔍 SEARCH */
+searchInput.addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  filteredGames = allGames.filter(g => g.name.toLowerCase().includes(q));
+  currentPage = 1;
+  displayGames();
+  setupPagination();
+});
+</script>
 
 </body>
 </html>
