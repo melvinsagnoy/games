@@ -253,18 +253,10 @@ document.querySelectorAll('nav a').forEach(link=>{
 </body>
 <script>
 (function () {
-  // Allowed referrers (Google Sites)
-  const ALLOWED_REFERRERS = [
-    "sites.google.com",
-    "docs.google.com"
-  ];
+  const urlParams = new URLSearchParams(window.location.search);
+  const key = urlParams.get('key');
 
-  const referrer = document.referrer || "";
-
-  // Check if any allowed referrer matches
-  const allowed = ALLOWED_REFERRERS.some(r => referrer.includes(r));
-
-  if (!allowed) {
+  if (key !== "MYSECRETKEY") {
     document.documentElement.innerHTML = `
       <head>
         <title>Access Denied</title>
@@ -286,11 +278,11 @@ document.querySelectorAll('nav a').forEach(link=>{
       <body>
         <div>
           <h1>🚫 Access Denied</h1>
-          <p>This page can only be opened from the official Google Site.</p>
+          <p>This page can only be opened from the Google Site.</p>
         </div>
       </body>
     `;
-    throw new Error("Blocked: Not allowed referrer");
+    throw new Error("Blocked: Invalid key");
   }
 })();
 </script>
