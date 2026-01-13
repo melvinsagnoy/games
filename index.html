@@ -253,11 +253,18 @@ document.querySelectorAll('nav a').forEach(link=>{
 </body>
 <script>
 (function () {
-  const ALLOWED_REFERRER = "sites.google.com";
+  // Allowed referrers (Google Sites)
+  const ALLOWED_REFERRERS = [
+    "sites.google.com",
+    "docs.google.com"
+  ];
 
   const referrer = document.referrer || "";
 
-  if (!referrer.includes(ALLOWED_REFERRER)) {
+  // Check if any allowed referrer matches
+  const allowed = ALLOWED_REFERRERS.some(r => referrer.includes(r));
+
+  if (!allowed) {
     document.documentElement.innerHTML = `
       <head>
         <title>Access Denied</title>
@@ -283,7 +290,7 @@ document.querySelectorAll('nav a').forEach(link=>{
         </div>
       </body>
     `;
-    throw new Error("Blocked: Not opened from Google Sites");
+    throw new Error("Blocked: Not allowed referrer");
   }
 })();
 </script>
